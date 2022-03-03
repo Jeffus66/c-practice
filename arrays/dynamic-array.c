@@ -1,15 +1,19 @@
 #include <string.h>
 
-//TODO - Add more error handling to functions that need it. ie: check pointer addresses are valid, guard against index out ouf bounds.
-//TODO - Write unit tests for functions and implement any helper methods needed
+//TODO - Write unit tests for functions
 
 dArray* newDynamicArray(int capacity) {
     int trueCapacity = determineTrueCapacity(capacity);
 
     dArray *array = malloc(sizeof(dArray));
-    array->size = 0;
-    array->capacity = trueCapacity;
-    array->data = malloc(sizeof(int) * trueCapacity);
+
+    validateMemory(array);
+
+    array -> size = 0;
+    array -> capacity = trueCapacity;
+    array -> data = malloc(sizeof(int) * trueCapacity);
+
+    validateMemory(array -> data);
 
     return array;
 }
@@ -17,40 +21,44 @@ dArray* newDynamicArray(int capacity) {
 int determineTrueCapacity(int capacity) {
     int trueCapacity = minimumCapacity;
 
-    if(capacity > trueCapacity) {
-        for(int i = 16; i < capacity; i *= growthFactor) {
-            trueCapacity = trueCapacity * growthFactor;
+    if (capacity > trueCapacity) {
+        for (int i = 16; i < capacity; i *= growthFactor) {
+            trueCapacity *= growthFactor;
         }
     }
+
     return trueCapacity;
 }
 
 int size(dArray *arrayPtr) {
-    return arrayPtr->size;
+    return arrayPtr -> size;
 }
 
 int capacity(dArray *arrayPtr) {
-    return arrayPtr->capacity;
+    return arrayPtr -> capacity;
 }
 
 bool isEmpty(dArray *arrayPtr) {
-    return arrayPtr->size == 0;
+    return arrayPtr -> size == 0;
 }
 
 int at(dArray *arrayPtr, int index) {
-    return *(arrayPtr->data + index);
+    if (index >= arrayPtr -> size || index < 0) {
+        printf("Error: Invalid Index");
+        exit(EXIT_FAILURE);
+    }
+
+    return *(arrayPtr -> data + index);
 }
 
 void resizeArray(dArray *arrayPtr, int newCapacity) {
-    if(arrayPtr->size < newCapacity) {
-
-        if(arrayPtr->size == arrayPtr->capacity) {
+    if (arrayPtr -> size < newCapacity) {
+        if (arrayPtr -> size == arrayPtr -> capacity) {
 
             upsizeArray(arrayPtr);
 
-        } else if (arrayPtr->size > newCapacity) {
-
-            if(arrayPtr->size < arrayPtr->capacity / shrinkFactor) {
+        } else if (arrayPtr -> size > newCapacity) {
+            if (arrayPtr -> size < arrayPtr -> capacity / shrinkFactor) {
 
                 downsizeArray(arrayPtr);
             }
@@ -59,41 +67,39 @@ void resizeArray(dArray *arrayPtr, int newCapacity) {
 }
 
 void upsizeArray(dArray *arrayPtr) {
-    int newCapacity = determineTrueCapacity(arrayPtr->capacity + 1);
+    int newCapacity = determineTrueCapacity(arrayPtr -> capacity + 1);
+    int *newData = realloc(arrayPtr -> data, sizeof(int) * newCapacity);
 
-    int *newData = realloc(arrayPtr->data, sizeof (int) * newCapacity);
-
-    arrayPtr->data = newData;
-
-    arrayPtr->capacity = newCapacity;
+    arrayPtr -> data = newData;
+    arrayPtr -> capacity = newCapacity;
 }
 
 void downsizeArray(dArray *arrayPtr) {
-    int newCapacity = arrayPtr->capacity / growthFactor;
+    int newCapacity = arrayPtr -> capacity / growthFactor;
+    int *newData = realloc(arrayPtr -> data, sizeof(int) * newCapacity);
 
-    int *newData = realloc(arrayPtr->data, sizeof(int) * newCapacity);
-
-    arrayPtr->data = newData;
-
-    arrayPtr->capacity = newCapacity;
+    arrayPtr -> data = newData;
+    arrayPtr -> capacity = newCapacity;
 }
 
-void push(dArray *arrayPtr, int value) {
-    resizeArray(arrayPtr, arrayPtr->size + 1);
+void pushValue(dArray *arrayPtr, int value) {
+    resizeArray(arrayPtr, arrayPtr -> size + 1);
 
-    *(arrayPtr->data + arrayPtr->size) = value;
-
-    arrayPtr->size++;
+    *(arrayPtr -> data + arrayPtr -> size) = value;
+    arrayPtr -> size++;
 }
 
 void insertValue(dArray *arrayPtr, int index, int value) {
-    resizeArray(arrayPtr, arrayPtr->size + 1);
+    if (index > arrayPtr -> size || index < 0) {
+        printf("Error: Invalid Index\n");
+        exit(EXIT_FAILURE);
+    }
 
-    memmove( arrayPtr->data + index + 1, arrayPtr->data + index, sizeof(int) * (arrayPtr->size - index));
+    resizeArray(arrayPtr, arrayPtr -> size + 1);
+    memmove(arrayPtr -> data + index + 1, arrayPtr -> data + index, sizeof(int) * (arrayPtr -> size - index));
 
-    *(arrayPtr->data + index) = value;
-
-    arrayPtr->size++;
+    *(arrayPtr -> data + index) = value;
+    arrayPtr -> size++;
 }
 
 void prepend(dArray *arrayPtr, int value) {
@@ -101,40 +107,51 @@ void prepend(dArray *arrayPtr, int value) {
 }
 
 int pop(dArray *arrayPtr) {
-    resizeArray(arrayPtr, arrayPtr->size - 1);
+    resizeArray(arrayPtr, arrayPtr -> size - 1);
 
-    int lastValue = *(arrayPtr->data + (arrayPtr->size - 1));
-
-    arrayPtr->size--;
+    int lastValue = * (arrayPtr -> data + (arrayPtr -> size - 1));
+    arrayPtr -> size--;
 
     return lastValue;
 }
 
 void deleteAt(dArray *arrayPtr, int index) {
-    resizeArray(arrayPtr, arrayPtr->size  - 1);
+    if (index > arrayPtr -> size || index < 0) {
+        printf("Error: Invalid Index\n");
+        exit(EXIT_FAILURE);
+    }
 
-    memmove(arrayPtr->data + index, arrayPtr->data + index + 1, sizeof(int) * (arrayPtr->size - index));
+    resizeArray(arrayPtr, arrayPtr -> size - 1);
+    memmove(arrayPtr -> data + index, arrayPtr -> data + index + 1, sizeof(int) * (arrayPtr -> size - index));
 
-    arrayPtr->size--;
+    arrayPtr -> size--;
 }
 
 void removeValue(dArray *arrayPtr, int value) {
-    for(int i = 0; i < arrayPtr->size; i++) {
-        int arrayValue = *(arrayPtr->data + i);
+    bool valueFound = false;
 
-        if(arrayValue == value) {
+    for (int i = 0; i < arrayPtr -> size; i++) {
+        int arrayValue = *(arrayPtr -> data + i);
+
+        if (arrayValue == value) {
             deleteAt(arrayPtr, i);
+            valueFound = true;
         }
     }
+
+    if (!valueFound) {
+        printf("Error: Value not found\n");
+    }
+
 }
 
 int findValue(dArray *arrayPtr, int value) {
     int indexWithValue = -1;
 
-    for(int i = 0; i < arrayPtr->size; i++) {
-        int arrayValue  = *(arrayPtr->data + i);
+    for (int i = 0; i < arrayPtr -> size; i++) {
+        int arrayValue = * (arrayPtr -> data + i);
 
-        if(arrayValue == value) {
+        if (arrayValue == value) {
             indexWithValue = i;
             break;
         }
@@ -143,4 +160,26 @@ int findValue(dArray *arrayPtr, int value) {
     return indexWithValue;
 }
 
+void validateMemory(void *ptr) {
+    if (ptr == NULL) {
+        printf("Error Allocating Memory\n");
+        exit(EXIT_FAILURE);
+    }
+}
 
+void addValuesToArray(dArray *arrayPtr, int desiredCapacity) {
+    for (int i = 1; i <= desiredCapacity; i++) {
+        pushValue(arrayPtr, i);
+    }
+}
+
+void printArrayValues(dArray *arrayPtr) {
+    printf("Current Array Status\n");
+
+    for (int i = 0; i < arrayPtr -> size; i++) {
+        printf("%d is at index %d\n", *(arrayPtr -> data + i), i);
+    }
+
+    printf("Size of the array is %d\n", size(arrayPtr));
+    printf("Capacity of the array is %d\n\n", capacity(arrayPtr));
+}
