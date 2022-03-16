@@ -78,4 +78,25 @@ void addValuesToArray(dArray *arrayPtr, int desiredCapacity);
 // Prints array values and their indices as well as the current size and capacity values.
 void printArrayValues(dArray *arrayPtr);
 
+// Used for unit tests, frees the passed in array data and array
+void destroyArray(dArray *arrayPtr);
+
+//Unit tests
+void testNewDynamicArray();
+void testDetermineTrueCapacity();
+void testSize();
+void testCapacity();
+void testIsEmpty();
+void testAt();
+void testResizeArray();
+void testUpsizeArray();
+void testDownsizeArray();
+void testPushValue();
+void testInsertValue();
+void testPrepend();
+void testPop();
+void testDeleteAt();
+void testRemoveValue();
+void testFindValue();
+
 #endif //C_PRACTICE_DYNAMIC_ARRAY_H

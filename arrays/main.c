@@ -4,8 +4,10 @@
 #include "dynamic-array.c"
 
 void userDemo();
+void runTests();
 
 int main(void) {
+    runTests();
 
     userDemo();
 
@@ -16,6 +18,8 @@ void userDemo() {
     int desiredCapacity;
     int userValueChoice;
     int userIndexChoice;
+
+    printf("User Demo\n");
 
     printf("How many values would you like to store?\n");
 
@@ -63,7 +67,7 @@ void userDemo() {
 
     printArrayValues(arrayPtr);
 
-    printf("Automatically popping the last value\n");
+    printf("Automatically popping the last value\n\n");
 
     pop(arrayPtr);
 
@@ -94,4 +98,27 @@ void userDemo() {
     scanf("%d", & userValueChoice);
 
     printf("Value %d is at index %d", userValueChoice, findValue(arrayPtr, userValueChoice));
+}
+
+void runTests() {
+    printf("Running Tests\n");
+
+    testNewDynamicArray();
+    testDetermineTrueCapacity();
+    testSize();
+    testCapacity();
+    testIsEmpty();
+    testAt();
+    testResizeArray();
+    testUpsizeArray();
+    testDownsizeArray();
+    testPushValue();
+    testInsertValue();
+    testPrepend();
+    testPop();
+    testDeleteAt();
+    testRemoveValue();
+    testFindValue();
+
+    printf("Tests Successful\n\n");
 }
